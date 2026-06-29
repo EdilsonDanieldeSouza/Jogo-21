@@ -18,6 +18,8 @@ import java.util.Map;
 public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21Interface {
 
     private static final long serialVersionUID = 1L;
+    private static final int SALDO_INICIAL = 100;
+    private static final int APOSTA_PADRAO = 10;
 
     /**
      * Representa um jogador conectado a mesa.
@@ -31,6 +33,10 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
         final String nome;
         final ClienteCallback callback;
         final List<Carta> mao = new ArrayList<>();
+        int saldo = SALDO_INICIAL;
+        int apostaAtual = 0;
+        int vitorias = 0;
+        int derrotas = 0;
         EstadoPartida.Status status = EstadoPartida.Status.AGUARDANDO_PROXIMA_RODADA;
         boolean naRodadaAtual = false;
 
@@ -158,15 +164,22 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
      * <p>Esse metodo e usado pela barra lateral da interface grafica.</p>
      */
     @Override
-    public synchronized List<EstadoJogador> listarJogadores() throws RemoteException {
+    public synchronized List<EstadoJogador> listarJogadores(String idJogador) throws RemoteException {
+        obterJogador(idJogador);
+
         List<EstadoJogador> estados = new ArrayList<>();
         String idDaVez = idJogadorDaVez();
         for (Jogador jogador : jogadores.values()) {
+            boolean proprioJogador = jogador.id.equals(idJogador);
             estados.add(new EstadoJogador(
                     jogador.id,
                     jogador.nome,
-                    new ArrayList<>(jogador.mao),
-                    calcularPontuacao(jogador.mao),
+                    proprioJogador ? new ArrayList<>(jogador.mao) : List.of(),
+                    proprioJogador ? calcularPontuacao(jogador.mao) : -1,
+                    jogador.saldo,
+                    jogador.apostaAtual,
+                    jogador.vitorias,
+                    jogador.derrotas,
                     statusVisivel(jogador),
                     jogador.naRodadaAtual,
                     jogador.id.equals(idDaVez)
@@ -229,6 +242,7 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
 
         for (Jogador jogador : jogadores.values()) {
             jogador.mao.clear();
+            prepararAposta(jogador);
             jogador.naRodadaAtual = true;
             jogador.status = EstadoPartida.Status.AGUARDANDO_VEZ;
             ordemRodada.add(jogador.id);
@@ -350,6 +364,7 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
             } else {
                 jogador.status = EstadoPartida.Status.DEALER_VENCEU;
             }
+            registrarResultadoFinanceiro(jogador);
             jogador.notificar(mensagemResultado(jogador.status, pontJogador, pontDealer));
         }
         notificarJogadores("RESULTADO_RODADA|" + resumoRodada);
@@ -367,12 +382,57 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
         EstadoPartida.Status status = statusVisivel(jogador);
         return new EstadoPartida(
                 new ArrayList<>(jogador.mao),
-                new ArrayList<>(maoDealer),
+                cartasVisiveisDealer(),
                 dealerRevelado,
                 calcularPontuacao(jogador.mao),
                 dealerRevelado ? calcularPontuacao(maoDealer) : -1,
+                jogador.saldo,
+                jogador.apostaAtual,
+                jogador.vitorias,
+                jogador.derrotas,
                 status
         );
+    }
+
+    /**
+     * Reserva a aposta ficticia do jogador para a rodada atual.
+     */
+    private void prepararAposta(Jogador jogador) {
+        if (jogador.saldo <= 0) {
+            jogador.saldo = SALDO_INICIAL;
+            jogador.notificar("Seu saldo foi recarregado com " + SALDO_INICIAL + " fichas ficticias.");
+        }
+
+        jogador.apostaAtual = Math.min(APOSTA_PADRAO, jogador.saldo);
+        jogador.saldo -= jogador.apostaAtual;
+        jogador.notificar("Aposta automatica de " + jogador.apostaAtual + " fichas registrada.");
+    }
+
+    /**
+     * Atualiza saldo e historico depois que o resultado da rodada e conhecido.
+     */
+    private void registrarResultadoFinanceiro(Jogador jogador) {
+        if (jogador.status == EstadoPartida.Status.JOGADOR_VENCEU
+                || jogador.status == EstadoPartida.Status.DEALER_ESTOUROU) {
+            jogador.vitorias++;
+            jogador.saldo += jogador.apostaAtual * 2;
+        } else if (jogador.status == EstadoPartida.Status.JOGADOR_ESTOUROU
+                || jogador.status == EstadoPartida.Status.DEALER_VENCEU) {
+            jogador.derrotas++;
+        }
+    }
+
+    /**
+     * Retorna apenas as cartas do dealer que podem ser enviadas ao cliente.
+     */
+    private List<Carta> cartasVisiveisDealer() {
+        if (dealerRevelado) {
+            return new ArrayList<>(maoDealer);
+        }
+        if (maoDealer.isEmpty()) {
+            return List.of();
+        }
+        return List.of(maoDealer.get(0));
     }
 
     /**
@@ -471,9 +531,9 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
     private String mensagemResultado(EstadoPartida.Status status, int pontJogador, int pontDealer) {
         return switch (status) {
             case JOGADOR_ESTOUROU -> "Voce estourou com " + pontJogador + " pontos. Dealer venceu.";
-            case DEALER_ESTOUROU -> "Dealer estourou com " + pontDealer + " pontos. Voce venceu!";
-            case JOGADOR_VENCEU -> "Voce venceu com " + pontJogador + " contra " + pontDealer + ".";
-            case DEALER_VENCEU -> "Dealer venceu com " + pontDealer + " contra " + pontJogador + ".";
+            case DEALER_ESTOUROU -> "Dealer estourou com " + pontDealer + " pontos. Voce venceu a aposta!";
+            case JOGADOR_VENCEU -> "Voce venceu com " + pontJogador + " contra " + pontDealer + " e ganhou a aposta.";
+            case DEALER_VENCEU -> "Dealer venceu com " + pontDealer + " contra " + pontJogador + ". Aposta perdida.";
             default -> "";
         };
     }
@@ -495,9 +555,9 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
             int pontos = calcularPontuacao(jogador.mao);
             boolean venceuDealer = pontos <= 21 && (pontDealer > 21 || pontos > pontDealer);
             if (venceuDealer) {
-                vencedores.add(jogador.nome + " (" + pontos + ")");
+                vencedores.add(jogador.nome + " (" + pontos + ", +" + jogador.apostaAtual + " fichas)");
             } else {
-                perdedores.add(jogador.nome + " (" + pontos + ")");
+                perdedores.add(jogador.nome + " (" + pontos + ", -" + jogador.apostaAtual + " fichas)");
             }
 
             if (pontos <= 21 && pontos > melhorPontuacao) {

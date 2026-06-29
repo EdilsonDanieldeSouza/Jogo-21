@@ -37,6 +37,10 @@ public class EstadoPartida implements Serializable {
     private final boolean dealerRevelado;
     private final int pontuacaoJogador;
     private final int pontuacaoDealer;
+    private final int saldoJogador;
+    private final int apostaAtual;
+    private final int vitoriasJogador;
+    private final int derrotasJogador;
     private final Status status;
 
     public EstadoPartida(
@@ -45,12 +49,20 @@ public class EstadoPartida implements Serializable {
             boolean dealerRevelado,
             int pontuacaoJogador,
             int pontuacaoDealer,
+            int saldoJogador,
+            int apostaAtual,
+            int vitoriasJogador,
+            int derrotasJogador,
             Status status) {
         this.cartasJogador = cartasJogador;
         this.cartasDealer = cartasDealer;
         this.dealerRevelado = dealerRevelado;
         this.pontuacaoJogador = pontuacaoJogador;
         this.pontuacaoDealer = pontuacaoDealer;
+        this.saldoJogador = saldoJogador;
+        this.apostaAtual = apostaAtual;
+        this.vitoriasJogador = vitoriasJogador;
+        this.derrotasJogador = derrotasJogador;
         this.status = status;
     }
 
@@ -76,6 +88,26 @@ public class EstadoPartida implements Serializable {
     /** Pontuacao do dealer. Vale -1 enquanto o dealer nao foi revelado. */
     public int getPontuacaoDealer() {
         return pontuacaoDealer;
+    }
+
+    /** Saldo ficticio do jogador local. */
+    public int getSaldoJogador() {
+        return saldoJogador;
+    }
+
+    /** Aposta ficticia feita pelo jogador local na rodada atual. */
+    public int getApostaAtual() {
+        return apostaAtual;
+    }
+
+    /** Quantidade de vitorias registradas para o jogador local. */
+    public int getVitoriasJogador() {
+        return vitoriasJogador;
+    }
+
+    /** Quantidade de derrotas registradas para o jogador local. */
+    public int getDerrotasJogador() {
+        return derrotasJogador;
     }
 
     /** Status atual do jogador local na mesa. */
@@ -118,6 +150,16 @@ public class EstadoPartida implements Serializable {
         if (!descricao.isEmpty()) {
             sb.append(System.lineSeparator()).append(descricao);
         }
+        sb.append(System.lineSeparator())
+                .append("Fichas: ")
+                .append(saldoJogador)
+                .append(" | Aposta: ")
+                .append(apostaAtual)
+                .append(" | Historico: ")
+                .append(vitoriasJogador)
+                .append("V/")
+                .append(derrotasJogador)
+                .append("D");
         return sb.toString();
     }
 

@@ -46,7 +46,7 @@ public class Cliente extends JFrame {
 
 
     /*
-    Definição de cores para a interface do cliente, incluindo cores da mesa, cartas e texto.
+    * Definição de cores para a interface do cliente, incluindo cores da mesa, cartas e texto.
     */
     private static final Color TABLE_GREEN = new Color(24, 96, 62);
     private static final Color TABLE_DARK = new Color(13, 54, 36);
@@ -54,8 +54,8 @@ public class Cliente extends JFrame {
     private static final Color CARD_BLACK = new Color(30, 35, 42);
 
     /*
-    Botões, campos de texto e labels usados na interface do cliente, incluindo campos para host, porta e nome do jogador, 
-    botões de conexão e ações do jogo, e labels para exibir informações sobre o estado do jogo.
+    * Botões, campos de texto e labels usados na interface do cliente, incluindo campos para host, porta e nome do jogador, 
+    * botões de conexão e ações do jogo, e labels para exibir informações sobre o estado do jogo.
     */
 
     private final JTextField hostField = new JTextField("localhost", 12);
@@ -71,6 +71,7 @@ public class Cliente extends JFrame {
     private final JLabel statusLabel = new JLabel("Conecte-se ao servidor para iniciar.");
     private final JLabel dealerScoreLabel = new JLabel("Dealer: -");
     private final JLabel playerScoreLabel = new JLabel("Jogador: -");
+    private final JLabel betInfoLabel = new JLabel("Fichas: - | Aposta: - | Historico: -");
     private final JPanel dealerCardsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 14, 10));
     private final JPanel playerCardsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 14, 10));
     private final JPanel tablePlayersPanel = new JPanel();
@@ -287,8 +288,12 @@ public class Cliente extends JFrame {
 
         hitButton.setPreferredSize(new Dimension(150, 38));
         standButton.setPreferredSize(new Dimension(150, 38));
+
+        betInfoLabel.setForeground(new Color(236, 244, 239));
+        betInfoLabel.setFont(betInfoLabel.getFont().deriveFont(Font.BOLD, 14f));
         bottom.add(hitButton);
         bottom.add(standButton);
+        bottom.add(betInfoLabel);
 
         return bottom;
     }
@@ -415,13 +420,17 @@ public class Cliente extends JFrame {
      * Atualiza a mesa com o estado recebido do servidor.
      */
     private void renderState(EstadoPartida state) {
-        renderCards(dealerCardsPanel, state.getCartasDealer(), !state.isDealerRevelado());
+        renderDealerCards(state);
         renderCards(playerCardsPanel, state.getCartasJogador(), false);
 
         playerScoreLabel.setText("Jogador: " + state.getPontuacaoJogador());
         dealerScoreLabel.setText(state.isDealerRevelado()
                 ? "Dealer: " + state.getPontuacaoDealer()
                 : "Dealer: carta oculta");
+        betInfoLabel.setText("Fichas: " + state.getSaldoJogador()
+                + " | Aposta: " + state.getApostaAtual()
+                + " | Historico: " + state.getVitoriasJogador()
+                + "V/" + state.getDerrotasJogador() + "D");
 
         String message = messageForStatus(state.getStatus());
         statusLabel.setText(message);
@@ -432,6 +441,18 @@ public class Cliente extends JFrame {
 
         revalidate();
         repaint();
+    }
+
+    /**
+     * Renderiza o dealer mantendo uma carta virada quando a rodada ainda nao acabou.
+     */
+    private void renderDealerCards(EstadoPartida state) {
+        renderCards(dealerCardsPanel, state.getCartasDealer(), false);
+        if (!state.isDealerRevelado() && !state.getCartasDealer().isEmpty()) {
+            dealerCardsPanel.add(new CardView(null, true));
+            dealerCardsPanel.revalidate();
+            dealerCardsPanel.repaint();
+        }
     }
 
     /**
@@ -462,7 +483,7 @@ public class Cliente extends JFrame {
         new SwingWorker<List<EstadoJogador>, Void>() {
             @Override
             protected List<EstadoJogador> doInBackground() throws Exception {
-                return service.listarJogadores();
+                return service.listarJogadores(playerName);
             }
 
             @Override
@@ -546,10 +567,13 @@ public class Cliente extends JFrame {
                 BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(70, 130, 95)),
                 new EmptyBorder(10, 0, 12, 0)));
 
-        JLabel header = new JLabel(jogador.getNome() + " - " + jogador.getPontuacao() + " pts");
         boolean isMe = jogador.getId().equals(playerName);
+        String pontuacao = jogador.getPontuacao() >= 0 ? jogador.getPontuacao() + " pts" : "cartas ocultas";
+        JLabel header = new JLabel(jogador.getNome() + " - " + pontuacao
+                + " - " + jogador.getVitorias() + "V/" + jogador.getDerrotas() + "D");
         if (isMe) {
-            header.setText("VOCE - " + jogador.getNome() + " - " + jogador.getPontuacao() + " pts");
+            header.setText("VOCE - " + jogador.getNome() + " - " + pontuacao
+                    + " - " + jogador.getSaldo() + " fichas");
         }
         header.setForeground(Color.WHITE);
         header.setFont(header.getFont().deriveFont(Font.BOLD, 14f));
@@ -564,12 +588,19 @@ public class Cliente extends JFrame {
 
         JPanel cards = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         cards.setOpaque(false);
-        for (Carta carta : jogador.getCartas()) {
-            cards.add(new MiniCardView(carta));
+        if (jogador.getCartas().isEmpty() && !isMe && jogador.isNaRodadaAtual()) {
+            cards.add(new HiddenMiniCardView());
+            cards.add(new HiddenMiniCardView());
+        } else {
+            for (Carta carta : jogador.getCartas()) {
+                cards.add(new MiniCardView(carta));
+            }
         }
         panel.add(cards, BorderLayout.CENTER);
 
-        JLabel status = new JLabel(statusText(jogador));
+        JLabel status = new JLabel(statusText(jogador)
+                + " | Aposta: " + jogador.getApostaAtual()
+                + " | " + jogador.getVitorias() + "V/" + jogador.getDerrotas() + "D");
         status.setForeground(new Color(220, 235, 226));
         panel.add(status, BorderLayout.SOUTH);
 
@@ -671,6 +702,7 @@ public class Cliente extends JFrame {
         playerCardsPanel.removeAll();
         renderPlayersTable(List.of());
         playerScoreLabel.setText("Jogador: -");
+        betInfoLabel.setText("Fichas: - | Aposta: - | Historico: -");
         identityLabel.setText("Voce ainda nao entrou na mesa");
         dealerScoreLabel.setText("Dealer: -");
         resetConnection();
@@ -821,11 +853,52 @@ public class Cliente extends JFrame {
 
         private static String suitSymbol(Carta card) {
             return switch (card.getNipe()) {
-                case COPAS -> "♥";
-                case OUROS -> "♦";
-                case PAUS -> "♣";
-                case ESPADAS -> "♠";
+                case COPAS -> "\u2665";
+                case OUROS -> "\u2666";
+                case PAUS -> "\u2663";
+                case ESPADAS -> "\u2660";
             };
+        }
+    }
+
+    /**
+     * Componente visual de carta oculta usado para outros jogadores.
+     */
+    private static class HiddenMiniCardView extends JPanel {
+        private static final long serialVersionUID = 1L;
+
+        HiddenMiniCardView() {
+            setPreferredSize(new Dimension(46, 64));
+            setMinimumSize(new Dimension(46, 64));
+            setMaximumSize(new Dimension(46, 64));
+            setOpaque(false);
+            setLayout(new BorderLayout());
+            setBorder(new EmptyBorder(6, 4, 6, 6));
+
+            JLabel back = new JLabel("\u2660", JLabel.CENTER);
+            back.setForeground(Color.WHITE);
+            back.setFont(back.getFont().deriveFont(Font.BOLD, 22f));
+            add(back, BorderLayout.CENTER);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int width = getWidth() - 8;
+            int height = getHeight() - 8;
+            g.setColor(new Color(0, 0, 0, 55));
+            g.fillRoundRect(6, 7, width, height, 10, 10);
+            GradientPaint back = new GradientPaint(2, 2, new Color(34, 71, 151),
+                    2 + width, 2 + height, new Color(16, 35, 92));
+            g.setPaint(back);
+            g.fillRoundRect(2, 2, width, height, 10, 10);
+            g.setColor(new Color(255, 255, 255, 70));
+            g.drawRoundRect(8, 8, width - 12, height - 12, 8, 8);
+
+            g.dispose();
+            super.paintComponent(graphics);
         }
     }
 
@@ -844,7 +917,7 @@ public class Cliente extends JFrame {
             setBorder(BorderFactory.createEmptyBorder(14, 10, 10, 14));
 
             if (hidden) {
-                addCenteredLabel("♠", Color.WHITE, 42f);
+                addCenteredLabel("\u2660", Color.WHITE, 42f);
                 return;
             }
 
@@ -933,10 +1006,10 @@ public class Cliente extends JFrame {
 
         private static String suitSymbol(Carta card) {
             return switch (card.getNipe()) {
-                case COPAS -> "♥";
-                case OUROS -> "♦";
-                case PAUS -> "♣";
-                case ESPADAS -> "♠";
+                case COPAS -> "\u2665";
+                case OUROS -> "\u2666";
+                case PAUS -> "\u2663";
+                case ESPADAS -> "\u2660";
             };
         }
     }

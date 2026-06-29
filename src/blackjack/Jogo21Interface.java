@@ -66,15 +66,17 @@ public interface Jogo21Interface extends Remote {
     EstadoPartida obterEstado(String idJogador) throws RemoteException;
 
     /**
-     * Lista todos os jogadores conectados a mesa.
+     * Lista todos os jogadores conectados a mesa para um jogador especifico.
      *
      * <p>Esse metodo alimenta a barra lateral da interface grafica, mostrando
-     * nome, cartas, pontuacao, status e quem esta na vez.</p>
+     * nome, status e quem esta na vez. As cartas e a pontuacao so sao enviadas
+     * para o proprio jogador solicitante.</p>
      *
+     * @param idJogador identificador unico do jogador que esta consultando
      * @return lista com resumos dos jogadores conectados
      * @throws RemoteException se houver falha de comunicacao RMI
      */
-    List<EstadoJogador> listarJogadores() throws RemoteException;
+    List<EstadoJogador> listarJogadores(String idJogador) throws RemoteException;
 
     /**
      * Remove um jogador da mesa.

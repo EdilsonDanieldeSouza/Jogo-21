@@ -18,10 +18,10 @@ public class Carta implements Serializable {
      * <p>Cada naipe possui um simbolo textual usado na exibicao das cartas.</p>
      */
     public enum Nipe {
-        COPAS("♥"),
-        OUROS("♦"),
-        PAUS("♣"),
-        ESPADAS("♠");
+        COPAS("\u2665"),
+        OUROS("\u2666"),
+        PAUS("\u2663"),
+        ESPADAS("\u2660");
 
         private final String simbolo;
 
@@ -110,7 +110,7 @@ public class Carta implements Serializable {
         return valor == Valor.AS;
     }
 
-    /** Retorna uma representacao curta, como A♥ ou 10♣. */
+    /** Retorna uma representacao curta, como A de copas ou 10 de paus. */
     @Override
     public String toString() {
         return valor.getNome() + nipe.getSimbolo();

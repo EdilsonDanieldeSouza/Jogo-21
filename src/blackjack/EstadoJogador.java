@@ -17,6 +17,10 @@ public class EstadoJogador implements Serializable {
     private final String nome;
     private final List<Carta> cartas;
     private final int pontuacao;
+    private final int saldo;
+    private final int apostaAtual;
+    private final int vitorias;
+    private final int derrotas;
     private final EstadoPartida.Status status;
     private final boolean naRodadaAtual;
     private final boolean vezAtual;
@@ -26,6 +30,10 @@ public class EstadoJogador implements Serializable {
             String nome,
             List<Carta> cartas,
             int pontuacao,
+            int saldo,
+            int apostaAtual,
+            int vitorias,
+            int derrotas,
             EstadoPartida.Status status,
             boolean naRodadaAtual,
             boolean vezAtual) {
@@ -33,6 +41,10 @@ public class EstadoJogador implements Serializable {
         this.nome = nome;
         this.cartas = cartas;
         this.pontuacao = pontuacao;
+        this.saldo = saldo;
+        this.apostaAtual = apostaAtual;
+        this.vitorias = vitorias;
+        this.derrotas = derrotas;
         this.status = status;
         this.naRodadaAtual = naRodadaAtual;
         this.vezAtual = vezAtual;
@@ -61,6 +73,26 @@ public class EstadoJogador implements Serializable {
     /** Pontuacao calculada pelo servidor para essa mao. */
     public int getPontuacao() {
         return pontuacao;
+    }
+
+    /** Saldo ficticio visivel para exibicao da mesa. */
+    public int getSaldo() {
+        return saldo;
+    }
+
+    /** Aposta ficticia atual. */
+    public int getApostaAtual() {
+        return apostaAtual;
+    }
+
+    /** Vitorias acumuladas enquanto o jogador esta conectado. */
+    public int getVitorias() {
+        return vitorias;
+    }
+
+    /** Derrotas acumuladas enquanto o jogador esta conectado. */
+    public int getDerrotas() {
+        return derrotas;
     }
 
     /** Situacao do jogador na rodada atual. */
