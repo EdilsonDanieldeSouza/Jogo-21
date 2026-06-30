@@ -363,8 +363,6 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
                 jogador.status = EstadoPartida.Status.DEALER_ESTOUROU;
             } else if (pontJogador > pontDealer) {
                 jogador.status = EstadoPartida.Status.JOGADOR_VENCEU;
-            } else if (pontJogador == pontDealer) {
-                jogador.status = EstadoPartida.Status.EMPATE;
             } else {
                 jogador.status = EstadoPartida.Status.DEALER_VENCEU;
             }
@@ -417,13 +415,12 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
      * Atualiza saldo e historico depois que o resultado da rodada e conhecido.
      */
     private void registrarResultadoFinanceiro(Jogador jogador) {
-        if (jogador.status == EstadoPartida.Status.JOGADOR_VENCEU|| jogador.status == EstadoPartida.Status.DEALER_ESTOUROU) {
+        if (jogador.status == EstadoPartida.Status.JOGADOR_VENCEU || jogador.status == EstadoPartida.Status.DEALER_ESTOUROU) {
             jogador.vitorias++;
             jogador.saldo += jogador.apostaAtual * 2;
-        }else if(jogador.status == EstadoPartida.Status.EMPATE){
+        } else if (jogador.status == EstadoPartida.Status.EMPATE) {
             jogador.empates++;
-            jogador.saldo += jogador.apostaAtual;
-        }else if (jogador.status == EstadoPartida.Status.JOGADOR_ESTOUROU || jogador.status == EstadoPartida.Status.DEALER_VENCEU) {
+        } else if (jogador.status == EstadoPartida.Status.JOGADOR_ESTOUROU || jogador.status == EstadoPartida.Status.DEALER_VENCEU) {
             jogador.derrotas++;
         }
     }
@@ -539,7 +536,7 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
             case JOGADOR_ESTOUROU -> "Voce estourou com " + pontJogador + " pontos. Dealer venceu.";
             case DEALER_ESTOUROU -> "Dealer estourou com " + pontDealer + " pontos. Voce venceu a aposta!";
             case JOGADOR_VENCEU -> "Voce venceu com " + pontJogador + " contra " + pontDealer + " e ganhou a aposta.";
-            case EMPATE -> "Empate com " + pontJogador + " pontos. Sua aposta foi devolvida.";
+            case EMPATE -> "Empate entre jogadores com " + pontJogador + " pontos.";
             case DEALER_VENCEU -> "Dealer venceu com " + pontDealer + " contra " + pontJogador + ". Aposta perdida.";
             default -> "";
         };
@@ -550,9 +547,7 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
      */
     private String montarResumoRodada(int pontDealer) {
         List<String> vencedores = new ArrayList<>();
-        List<String> empates = new ArrayList<>();
         List<String> perdedores = new ArrayList<>();
-        int melhorPontuacao = -1;
 
         for (String id : ordemRodada) {
             Jogador jogador = jogadores.get(id);
@@ -562,39 +557,14 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
 
             int pontos = calcularPontuacao(jogador.mao);
             boolean venceuDealer = pontos <= 21 && (pontDealer > 21 || pontos > pontDealer);
-            boolean empatouDealer = pontos <= 21 && pontDealer <= 21 && pontos == pontDealer;
             if (venceuDealer) {
                 vencedores.add(jogador.nome + " (" + pontos + ", +" + jogador.apostaAtual + " fichas)");
-            } else if (empatouDealer) {
-                empates.add(jogador.nome + " (" + pontos + ", aposta devolvida)");
             } else {
                 perdedores.add(jogador.nome + " (" + pontos + ", -" + jogador.apostaAtual + " fichas)");
             }
-
-            if (pontos <= 21 && pontos > melhorPontuacao) {
-                melhorPontuacao = pontos;
-            }
         }
 
-        List<String> empatados = new ArrayList<>();
-        if (melhorPontuacao >= 0) {
-            for (String id : ordemRodada) {
-                Jogador jogador = jogadores.get(id);
-                if (jogador != null && calcularPontuacao(jogador.mao) == melhorPontuacao) {
-                    empatados.add(jogador.nome);
-                }
-            }
-        }
-
-        String empateTexto = empatados.size() > 1
-                ? "Empate entre jogadores: " + String.join(", ", empatados) + " (" + melhorPontuacao + ")"
-                : "Sem empate entre jogadores";
-
-        return "Dealer: " + pontDealer
-                + "\nVencedores: " + textoLista(vencedores)
-                + "\nEmpates: " + textoLista(empates)
-                + "\nPerdedores: " + textoLista(perdedores)
-                + "\n" + empateTexto;
+        return "Dealer: " + pontDealer  + "\nVencedores: " + textoLista(vencedores)  + "\nPerdedores: " + textoLista(perdedores);
     }
 
     /** Formata listas do resumo final, evitando lista vazia sem texto. */

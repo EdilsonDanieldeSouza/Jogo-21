@@ -30,7 +30,7 @@ public class EstadoPartida implements Serializable {
         AGUARDANDO_VEZ,
         /** Jogador escolheu parar e aguarda os demais. */
         JOGADOR_PAROU,
-        /** Jogador e dealer empataram. A aposta e devolvida. */
+        /** Jogadores empataram entre si. */
         EMPATE
     }
 
@@ -127,7 +127,7 @@ public class EstadoPartida implements Serializable {
 
     /** Retorna true quando a rodada ja tem um resultado final para o jogador. */
     public boolean isPartidaEncerrada() {
-        return status == Status.JOGADOR_ESTOUROU || status == Status.DEALER_ESTOUROU || status == Status.JOGADOR_VENCEU|| status == Status.DEALER_VENCEU || status == Status.EMPATE;
+        return status == Status.JOGADOR_ESTOUROU || status == Status.DEALER_ESTOUROU || status == Status.JOGADOR_VENCEU || status == Status.DEALER_VENCEU || status == Status.EMPATE;
     }
 
     @Override
@@ -192,7 +192,7 @@ public class EstadoPartida implements Serializable {
             case AGUARDANDO_PROXIMA_RODADA -> "Aguardando a proxima rodada.";
             case AGUARDANDO_VEZ -> "Aguardando sua vez.";
             case JOGADOR_PAROU -> "Voce parou. Aguarde o resultado.";
-            case EMPATE -> "Empate.";
+            case EMPATE -> "Empate entre jogadores.";
             default -> "";
         };
     }

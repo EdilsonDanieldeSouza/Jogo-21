@@ -62,14 +62,14 @@ public class ClienteGUI extends JFrame {
     private final JPanel dealerCardsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 14, 10));
     private final JPanel playerCardsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 14, 10));
     private final JPanel tablePlayersPanel = new JPanel();
-    private final JTextArea logArea = new JTextArea(6, 40);
+    private final JTextArea logArea = new JTextArea(12, 40);
 
     private String lastStatusMessage = "";
 
     public ClienteGUI() {
         super("Jogo de 21 - Trabalho 3");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(880, 620));
+        setMinimumSize(new Dimension(880, 680));
         setLocationByPlatform(true);
         buildLayout();
         pack();
@@ -331,8 +331,8 @@ public class ClienteGUI extends JFrame {
         table.add(dealerCardsPanel, gbc);
 
         gbc.gridy = 2;
-        gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0.25;
+        gbc.fill = GridBagConstraints.BOTH;
         table.add(statusPanel(), gbc);
 
         gbc.gridy = 3;
@@ -387,9 +387,9 @@ public class ClienteGUI extends JFrame {
     }
 
     private JPanel statusPanel() {
-        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(8, 0, 12, 0));
+        panel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         statusLabel.setHorizontalAlignment(JLabel.CENTER);
         statusLabel.setForeground(Color.WHITE);
@@ -401,7 +401,7 @@ public class ClienteGUI extends JFrame {
         logArea.setWrapStyleWord(true);
         logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
         JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setPreferredSize(new Dimension(100, 115));
+        scrollPane.setPreferredSize(new Dimension(100, 180));
         panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
@@ -450,11 +450,11 @@ public class ClienteGUI extends JFrame {
     }
 
     private JPanel playerSummaryPanel(EstadoJogador jogador, String currentPlayerId) {
-        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(70, 130, 95)),
-                new EmptyBorder(10, 0, 12, 0)));
+                new EmptyBorder(10, 0, 10, 0)));
 
         boolean isMe = currentPlayerId != null && jogador.getId().equals(currentPlayerId);
         String pontuacao = jogador.getPontuacao() >= 0 ? jogador.getPontuacao() + " pts" : "cartas ocultas";
@@ -474,7 +474,7 @@ public class ClienteGUI extends JFrame {
             panel.setBackground(new Color(38, 118, 77));
             panel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(245, 215, 95), 2),
-                    new EmptyBorder(10, 8, 12, 8)));
+                    new EmptyBorder(10, 8, 10, 8)));
         }
 
         JPanel cards = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -515,7 +515,7 @@ public class ClienteGUI extends JFrame {
             case AGUARDANDO_PROXIMA_RODADA -> "Mesa em andamento. Voce entra na proxima rodada.";
             case AGUARDANDO_VEZ -> "Aguarde sua vez.";
             case JOGADOR_PAROU -> "Voce parou. Aguardando o fim da rodada.";
-            case EMPATE -> "Empate.";
+            case EMPATE -> "Empate entre jogadores.";
         };
     }
 
@@ -535,7 +535,7 @@ public class ClienteGUI extends JFrame {
             case DEALER_ESTOUROU -> "Venceu";
             case JOGADOR_VENCEU -> "Venceu";
             case DEALER_VENCEU -> "Dealer venceu";
-            case EMPATE -> "Empate.";
+            case EMPATE -> "Empate entre jogadores.";
         };
     }
 
