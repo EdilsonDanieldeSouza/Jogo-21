@@ -22,14 +22,16 @@ public class EstadoPartida implements Serializable {
         DEALER_ESTOUROU,
         /** Jogador venceu o dealer por pontuacao. */
         JOGADOR_VENCEU,
-        /** Dealer venceu por pontuacao maior ou empate. */
+        /** Dealer venceu por pontuacao maior. */
         DEALER_VENCEU,
         /** Jogador entrou durante uma rodada e so jogara na proxima. */
         AGUARDANDO_PROXIMA_RODADA,
         /** Jogador esta na rodada, mas ainda nao e sua vez. */
         AGUARDANDO_VEZ,
         /** Jogador escolheu parar e aguarda os demais. */
-        JOGADOR_PAROU
+        JOGADOR_PAROU,
+        /** Jogador e dealer empataram. A aposta e devolvida. */
+        EMPATE
     }
 
     private final List<Carta> cartasJogador;
@@ -40,6 +42,7 @@ public class EstadoPartida implements Serializable {
     private final int saldoJogador;
     private final int apostaAtual;
     private final int vitoriasJogador;
+    private final int empatesJogador;
     private final int derrotasJogador;
     private final Status status;
 
@@ -52,6 +55,7 @@ public class EstadoPartida implements Serializable {
             int saldoJogador,
             int apostaAtual,
             int vitoriasJogador,
+            int empatesJogador,
             int derrotasJogador,
             Status status) {
         this.cartasJogador = cartasJogador;
@@ -62,6 +66,7 @@ public class EstadoPartida implements Serializable {
         this.saldoJogador = saldoJogador;
         this.apostaAtual = apostaAtual;
         this.vitoriasJogador = vitoriasJogador;
+        this.empatesJogador = empatesJogador;
         this.derrotasJogador = derrotasJogador;
         this.status = status;
     }
@@ -105,6 +110,11 @@ public class EstadoPartida implements Serializable {
         return vitoriasJogador;
     }
 
+    /** Quantidade de empates registrados para o jogador local. */
+    public int getEmpatesJogador() {
+        return empatesJogador;
+    }
+
     /** Quantidade de derrotas registradas para o jogador local. */
     public int getDerrotasJogador() {
         return derrotasJogador;
@@ -117,10 +127,7 @@ public class EstadoPartida implements Serializable {
 
     /** Retorna true quando a rodada ja tem um resultado final para o jogador. */
     public boolean isPartidaEncerrada() {
-        return status == Status.JOGADOR_ESTOUROU
-                || status == Status.DEALER_ESTOUROU
-                || status == Status.JOGADOR_VENCEU
-                || status == Status.DEALER_VENCEU;
+        return status == Status.JOGADOR_ESTOUROU || status == Status.DEALER_ESTOUROU || status == Status.JOGADOR_VENCEU|| status == Status.DEALER_VENCEU || status == Status.EMPATE;
     }
 
     @Override
@@ -158,6 +165,8 @@ public class EstadoPartida implements Serializable {
                 .append(" | Historico: ")
                 .append(vitoriasJogador)
                 .append("V/")
+                .append(empatesJogador)
+                .append("E/")
                 .append(derrotasJogador)
                 .append("D");
         return sb.toString();
@@ -183,6 +192,7 @@ public class EstadoPartida implements Serializable {
             case AGUARDANDO_PROXIMA_RODADA -> "Aguardando a proxima rodada.";
             case AGUARDANDO_VEZ -> "Aguardando sua vez.";
             case JOGADOR_PAROU -> "Voce parou. Aguarde o resultado.";
+            case EMPATE -> "Empate.";
             default -> "";
         };
     }

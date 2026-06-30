@@ -20,6 +20,7 @@ public class EstadoJogador implements Serializable {
     private final int saldo;
     private final int apostaAtual;
     private final int vitorias;
+    private final int empates;
     private final int derrotas;
     private final EstadoPartida.Status status;
     private final boolean naRodadaAtual;
@@ -33,6 +34,7 @@ public class EstadoJogador implements Serializable {
             int saldo,
             int apostaAtual,
             int vitorias,
+            int empates,
             int derrotas,
             EstadoPartida.Status status,
             boolean naRodadaAtual,
@@ -44,6 +46,7 @@ public class EstadoJogador implements Serializable {
         this.saldo = saldo;
         this.apostaAtual = apostaAtual;
         this.vitorias = vitorias;
+        this.empates = empates;
         this.derrotas = derrotas;
         this.status = status;
         this.naRodadaAtual = naRodadaAtual;
@@ -88,6 +91,11 @@ public class EstadoJogador implements Serializable {
     /** Vitorias acumuladas enquanto o jogador esta conectado. */
     public int getVitorias() {
         return vitorias;
+    }
+
+    /** Empates acumulados enquanto o jogador esta conectado. */
+    public int getEmpates() {
+        return empates;
     }
 
     /** Derrotas acumuladas enquanto o jogador esta conectado. */
