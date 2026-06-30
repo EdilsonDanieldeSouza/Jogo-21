@@ -19,7 +19,7 @@ import javax.swing.Timer;
 public class Cliente {
 
     private final ClienteGUI gui = new ClienteGUI();
-    private final Timer playersRefreshTimer = new Timer(1500, event -> refreshTableAndState());
+    private final Timer playersRefreshTimer = new Timer(750, event -> refreshTableAndState());
 
     private Jogo21Interface service;
     private ClienteCallback callback;

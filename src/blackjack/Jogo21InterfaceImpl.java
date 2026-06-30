@@ -507,7 +507,7 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
     private void agendarProximaRodada() {
         Thread proximaRodada = new Thread(() -> {
             try {
-                Thread.sleep(5000);
+                Thread.sleep(1000); // Aguarda 1 segundo para que todos vejam o resultado da rodada
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;

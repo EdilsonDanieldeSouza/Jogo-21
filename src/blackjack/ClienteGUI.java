@@ -222,7 +222,7 @@ public class ClienteGUI extends JFrame {
     }
 
     /**
-     * Mostra o resumo final da rodada por 5 segundos.
+     * Mostra o resumo final da rodada por 1 segundo.
      */
     public void showRoundResultAnimation(String resumo) {
         JDialog dialog = new JDialog(this, "Fim da rodada", false);
@@ -254,7 +254,7 @@ public class ClienteGUI extends JFrame {
         dialog.setContentPane(panel);
         dialog.setVisible(true);
 
-        Timer closeTimer = new Timer(5000, event -> dialog.dispose());
+        Timer closeTimer = new Timer(1000, event -> dialog.dispose());
         closeTimer.setRepeats(false);
         closeTimer.start();
     }
