@@ -271,13 +271,10 @@ public class Jogo21InterfaceImpl extends UnicastRemoteObject implements Jogo21In
         String idDaVez = idJogadorDaVez();
         for (String id : ordemRodada) {
             Jogador jogador = jogadores.get(id);
-            if (jogador == null || jogador.status != EstadoPartida.Status.AGUARDANDO_VEZ
-                    && jogador.status != EstadoPartida.Status.EM_ANDAMENTO) {
+            if (jogador == null || jogador.status != EstadoPartida.Status.AGUARDANDO_VEZ && jogador.status != EstadoPartida.Status.EM_ANDAMENTO) {
                 continue;
             }
-            jogador.status = id.equals(idDaVez)
-                    ? EstadoPartida.Status.EM_ANDAMENTO
-                    : EstadoPartida.Status.AGUARDANDO_VEZ;
+            jogador.status = id.equals(idDaVez) ? EstadoPartida.Status.EM_ANDAMENTO : EstadoPartida.Status.AGUARDANDO_VEZ;
         }
 
         Jogador jogadorDaVez = idDaVez == null ? null : jogadores.get(idDaVez);
